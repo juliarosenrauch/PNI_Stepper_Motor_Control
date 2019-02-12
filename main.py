@@ -39,6 +39,7 @@ class blinky_light_demo:
     #   blink_light_demo.some_function()
 
 if __name__ == "__main__":
+    Debug.begin(debug_level = Debug.DEBUG)
     blinky_1 = blinky_light_demo(board.D13, 0.5)
     blinky_2 = blinky_light_demo(board.D12, 1)
     motor = motor_control.motor_control()
