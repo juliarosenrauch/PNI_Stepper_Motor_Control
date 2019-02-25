@@ -9,11 +9,12 @@ class motor_control:
 
     def __init__(self):
         Debug.msg("Configuring...", Debug.INFO, source='motor')
+        self._baudrate = 9600
         self.serial_port = busio.UART(board.TX, board.RX, baudrate=9600, timeout=500)
         self.rts = DigitalInOut(board.D2)
         self.rts.direction = Direction.OUTPUT
         self.pull = Pull.DOWN
-        self.transmit_timer = chronometer(time_length_ms = 5000)
+        self.transmit_timer = chronometer(time_length_ms = 1000)
         self.transmit_timer.start()
         Debug.msg("Motor controller initialization done", Debug.INFO, source="motor")
 
@@ -23,8 +24,12 @@ class motor_control:
         print(out_msg)
         #Debug.msg("sending {}".format(out_msg), Debug.INFO, source="motor")
         self.serial_port.write(bytearray(out_msg))
-        delay(100)
+        delay(self.delay_length(len(out_msg)))
         self.rts.value = False
+
+    def delay_length(self, msg_length):
+        # correction factor of 1.2 is applied
+        return (msg_length*8.0)/self._baudrate*1000*1.2
 
     def motor_receive(self):
         return_messages = self.serial_port.read()
@@ -55,5 +60,13 @@ class motor_control:
             if return_message is not None:
                 Debug.msg(return_message, Debug.INFO, source="motor")
 
-    def parse_motor_response(response):
+    def parse_motor_response(self, response):
+        # example response
+        # [weird]/0[status]
+        response = bytearray(response)
+        status_byte = response[3]
+
+        busy = status_byte & 0x20
+        error = status_byte & 0b1111
+        
         pass
